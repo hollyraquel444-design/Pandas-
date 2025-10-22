@@ -1,0 +1,49 @@
+import pandas as pd
+
+# 1. Cargar los archivos
+df_estudiantes = pd.read_csv(".archivos/respuestas_estudiantes.csv")
+df_correctas = pd.read_excel(".archivos/respuestas correctas.xlsx")
+
+# 2. Obtener las preguntas usando metodos 
+preguntas = df_correctas['Pregunta'].values #usando .values
+
+# 3. Crea diccionario de respuestas correctas 
+clave_respuestas = {} #paso 1: Creamos un diccionario vacío 
+for i in range(df_correctas.shape[0]) : #Paso 2: Recorremos cada fila
+    # Paso 3: Extraemos pregunta y respuesta
+    pregunta = df_correctas['Pregunta'].iloc[i]
+    respuesta = df_correctas['Pregunta'].iloc[i]
+    
+    # Paso 4: Almacenamos en el diccionario
+    clave_respuestas[Pregunta] = respuesta
+    
+# 4. Calcular puntuacion para cada estudiante
+df_estudiantes['Puntuacion'] = 0 # Inicializa la columna puntuacion
+for p in preguntas: # Recorre cada pregunta
+    respuesta_correcta = clave_respuestas[p] # Obtiene la respuesta correcta
+    # Compara respuestas y suma 1 punto por cada acierto:
+    df_estudiantes['Puntuacion'] = df_estudiantes['Puntuacion'].add(
+        (df_estudiantes[p] == respuesta_correcta).astype(int))
+    
+    # 5. Mostrar detalle completo de respuestas
+    df_detalle = df_estudiantes.copy() # Copia el DataFrame original
+    
+    for p in preguntas:
+        # Marca errores añadiendo X donde no coinciden:
+        df_detalle[p] = df_detalle[p].where(
+            df_detalle[p] == clave_respuestas[p],
+            df_detalle[p] + 'X'
+        )
+        #Ordena por puntuacion (mayor a menor):
+        de_detalle.sort_values('Puntuacion', ascebding=False)
+        print["Leyenda: Respuesta X = incorrecta"]
+        print(df_detalle.to_string(index=False)) #Muestra sin indices
+    #6. Mostrar resultados resumidos
+    print("\n=== RESULTADOS DE LOS ESTUDIANTES ===")
+    print(df_edudiantes[["Nombre", "Puntuación"]].srt_values("Puntuación", ascending=False))  
+    
+    # 7. Guardar resultados 
+    df_estudiantes.to_csv("resutados_examen.csv", index=False)
+    print("\nResultados guardados en ´resultados_examen.csv´")
+       
+    
