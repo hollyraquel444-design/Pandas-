@@ -45,5 +45,81 @@ for p in preguntas: # Recorre cada pregunta
     # 7. Guardar resultados 
     df_estudiantes.to_csv("resutados_examen.csv", index=False)
     print("\nResultados guardados en ´resultados_examen.csv´")
-       
-    
+
+
+
+
+    import pandas as pd
+import os
+
+# Solicitar al usuario las rutas de los archivos
+archivo_estudiantes = input("Por favor, introduce la ruta del archivo de respuestas de los estudiantes (CSV): ")
+archivo_correctas = input("Por favor, introduce la ruta del archivo de respuestas correctas (XLSX): ")
+
+# Validar extensiones de los archivos de entrada
+def validar_extensiones(archivo, extensiones_validas):
+    if not archivo.endswith(tuple(extensiones_validas)):
+        raise ValueError(f"El archivo '{archivo}' no tiene una extensión válida. Extensiones válidas: {', '.join(extensiones_validas)}")
+
+validar_extensiones(archivo_estudiantes, ('.csv',))
+validar_extensiones(archivo_correctas, ('.xlsx',))
+
+# Verificar si los archivos existen
+if not os.path.isfile(archivo_estudiantes):
+    raise FileNotFoundError(f"El archivo '{archivo_estudiantes}' no se encontró.")
+if not os.path.isfile(archivo_correctas):
+    raise FileNotFoundError(f"El archivo '{archivo_correctas}' no se encontró.")
+
+# Cargar los archivos
+df_estudiantes = pd.read_csv(archivo_estudiantes)
+df_correctas = pd.read_excel(archivo_correctas)
+
+# Obtener las preguntas
+preguntas = df_correctas['Pregunta'].values
+
+# Crear diccionario de respuestas correctas
+clave_respuestas = {}
+for i in range(df_correctas.shape[0]):
+    pregunta = df_correctas['Pregunta'].iloc[i]
+    respuesta = df_correctas['Respuesta'].iloc[i]
+    clave_respuestas[pregunta] = respuesta
+
+# Calcular puntuación para cada estudiante
+df_estudiantes['Puntuación'] = 0
+for p in preguntas:
+    respuesta_correcta = clave_respuestas[p]
+    df_estudiantes['Puntuación'] += df_estudiantes[p].apply(lambda x: 1 if x == respuesta_correcta else 0)
+
+# Mostrar detalle completo de respuestas
+df_detalle = df_estudiantes.copy()
+for p in preguntas:
+    df_detalle[p] = df_detalle[p].where(
+        df_detalle[p] == clave_respuestas[p],
+        'X'
+    )
+df_detalle.sort_values('Puntuación', ascending=False, inplace=True)
+print("Detalle de respuestas:")
+print(df_detalle)
+
+# Mostrar resultados resuemidos
+print("\n=== RESULTADOS DE LOS ESTUDIANTES ===")
+print(df_estudiantes[['Nombre', 'Puntuación']].sort_values('Puntuación', ascending=False))
+
+# Guardar resultados en diferentes formatos
+nombre_base = input("Por favor, introduce el nombre base para los archivos de salida (sin extensión): ")
+def guardar_resultados(df, nombre_base):
+    # Validar extensiones de los archivos de salida
+    extensiones_salida = ('.csv', '.xlsx', '.xml')
+    for extension in extensiones_salida:
+        archivo_salida = f"{nombre_base}{extension}"
+        if extension == '.csv':
+            df.to_csv(archivo_salida, index=False)
+        elif extension == '.xlsx':
+            df.to_excel(archivo_salida, index=False)
+        elif extension == '.xml':
+            df.to_xml(archivo_salida, index=False)
+
+    print(f"\nResultados guardados en '{nombre_base}.csv', '{nombre_base}.xlsx' y '{nombre_base}.xml'")
+
+# Guardar los resultados
+guardar_resultados(df_estudiantes, nombre_base)
